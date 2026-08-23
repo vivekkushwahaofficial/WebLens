@@ -1,3 +1,7 @@
 __pycache__/
 *.py[cod]
 .venv/
+
+# WebLens ML datasets
+ml/data/raw/
+ml/data/processed/
