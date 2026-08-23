@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebLens</title>
+  <link rel="stylesheet" href="./popup.css">
+</head>
+
+<body>
+  <main class="popup">
+
+    <!-- Header -->
+    <header class="header">
+      <div class="brand">
+        <div class="brand-icon" aria-hidden="true">
+          <span>W</span>
+        </div>
+
+        <div class="brand-copy">
+          <h1>WebLens</h1>
+          <p>URL Security</p>
+        </div>
+      </div>
+
+      <div class="status-badge">
+        <span class="status-dot"></span>
+        <span>LIVE</span>
+      </div>
+    </header>
+
+    <!-- Loading -->
+    <section id="loading" class="state loading-state">
+      <div class="loading-icon">
+        <div class="spinner"></div>
+      </div>
+
+      <h2>Analyzing page</h2>
+      <p>Checking the current URL for threats...</p>
+    </section>
+
+    <!-- Result -->
+    <section id="result" class="hidden">
+
+      <!-- Risk summary -->
+      <section id="risk-card" class="risk-card">
+        <div class="risk-icon" id="risk-icon" aria-hidden="true">
+          !
+        </div>
+
+        <p class="risk-label">Security Assessment</p>
+
+        <h2 id="verdict">--</h2>
+
+        <div class="risk-score">
+          <strong id="risk-score">--</strong>
+          <span>/100</span>
+        </div>
+
+        <p class="risk-score-label">Risk Score</p>
+      </section>
+
+      <!-- Analysis details -->
+      <section class="details-card">
+
+        <div class="detail">
+          <div class="detail-label">
+            <span class="detail-icon">◈</span>
+            Detection
+          </div>
+
+          <strong id="detection">--</strong>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="detail">
+          <div class="detail-label">
+            <span class="detail-icon">◉</span>
+            Confidence
+          </div>
+
+          <strong id="confidence">--</strong>
+        </div>
+
+      </section>
+
+      <!-- Why -->
+      <section class="reasons-section">
+        <div class="section-heading">
+          <div class="section-icon">!</div>
+
+          <div>
+            <h3>Why we flagged this</h3>
+            <p>WebLens detection signals</p>
+          </div>
+        </div>
+
+        <ul id="reasons" class="reasons-list"></ul>
+      </section>
+
+      <!-- Current URL -->
+      <section class="url-card">
+        <div class="url-heading">
+          <span class="url-icon">↗</span>
+          <span>Current page</span>
+        </div>
+
+        <p id="url" class="url-value">--</p>
+      </section>
+
+      <!-- Action -->
+      <button id="reanalyze" class="primary-button" type="button">
+        <span>↻</span>
+        Analyze Again
+      </button>
+
+    </section>
+
+    <!-- Error -->
+    <section id="error" class="state error-state hidden">
+
+      <div class="error-icon">!</div>
+
+      <h2>Unable to analyze</h2>
+
+      <p id="error-message">
+        WebLens could not analyze the current page.
+      </p>
+
+      <button id="retry" class="primary-button" type="button">
+        Try Again
+      </button>
+
+    </section>
+
+    <footer class="footer">
+      <span>WebLens</span>
+      <span>•</span>
+      <span>Local analysis</span>
+    </footer>
+
+  </main>
+
+  <script type="module" src="../../dist/popup/popup.js"></script>
+</body>
+</html>
