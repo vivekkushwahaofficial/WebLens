@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import joblib
+import pandas as pd
 
 from ml.features.url_component_features import (
     extract_url_component_features,
@@ -105,12 +106,17 @@ class URLPredictor:
 
         features = self.extract_features(url)
 
+        feature_df = pd.DataFrame(
+            [features],
+            columns=self.feature_schema,
+        )
+
         prediction = self.model.predict(
-            [features]
+            feature_df
         )[0]
 
         probabilities = self.model.predict_proba(
-            [features]
+            feature_df
         )[0]
 
         class_probabilities = {
