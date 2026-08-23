@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "WebLens",
+  "version": "0.1.0",
+  "description": "Real-time early warning for phishing and malicious URLs.",
+  "permissions": [
+    "tabs"
+  ],
+  "background": {
+    "service_worker": "dist/background/service-worker.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "WebLens"
+  }
+}
