@@ -4,3 +4,8 @@ pydantic
 pydantic-settings
 pytest
 httpx
+
+pandas
+numpy
+scikit-learn
+joblib

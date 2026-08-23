@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class RiskAssessment:
-    """Result of the initial rule-based risk assessment."""
+    """Risk assessment derived from the ML malicious probability."""
 
     risk_score: int
     verdict: str
@@ -11,33 +11,25 @@ class RiskAssessment:
 
 def assess_risk(
     *,
-    url_length: int,
-    uses_ip_address: bool,
-    has_suspicious_keyword: bool,
+    malicious_probability: float,
 ) -> RiskAssessment:
-    """Calculate an initial risk score from basic URL signals."""
+    """Convert malicious probability into a product risk assessment."""
 
-    score = 0
+    probability = min(
+        max(malicious_probability, 0.0),
+        1.0,
+    )
 
-    if url_length > 100:
-        score += 20
+    risk_score = round(probability * 100)
 
-    if uses_ip_address:
-        score += 40
-
-    if has_suspicious_keyword:
-        score += 30
-
-    score = min(score, 100)
-
-    if score >= 70:
+    if risk_score >= 70:
         verdict = "HIGH_RISK"
-    elif score >= 40:
+    elif risk_score >= 40:
         verdict = "MEDIUM_RISK"
     else:
         verdict = "LOW_RISK"
 
     return RiskAssessment(
-        risk_score=score,
+        risk_score=risk_score,
         verdict=verdict,
     )

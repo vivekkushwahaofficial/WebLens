@@ -12,18 +12,17 @@ router = APIRouter()
 def analyze(request: AnalyzeRequest) -> AnalyzeResponse:
     """Analyze a submitted URL and return its risk assessment."""
 
-    features, assessment = analyze_url(str(request.url))
+    prediction, assessment = analyze_url(str(request.url))
 
     reasons = generate_reasons(
-        url_length=features.url_length,
-        uses_ip_address=features.uses_ip_address,
-        has_suspicious_keyword=features.has_suspicious_keyword,
+        prediction=prediction["prediction"],
+        confidence=prediction["confidence"],
     )
 
     return AnalyzeResponse(
         url=str(request.url),
         risk_score=assessment.risk_score,
         verdict=assessment.verdict,
-        confidence=None,
+        confidence=prediction["confidence"],
         reasons=reasons,
     )
