@@ -58,11 +58,29 @@ COMPONENT_FEATURE_NAMES = [
 ]
 
 
-FEATURE_NAMES = BASE_FEATURE_NAMES + COMPONENT_FEATURE_NAMES
+EXTENSION_FEATURE_NAMES = [
+    "has_exe_extension",
+    "has_html_extension",
+    "has_bin_extension",
+    "has_asp_extension",
+]
+
+
+EXCLUDED_BASE_FEATURES = {
+    "has_http",
+    "has_https",
+}
+
+
+FEATURE_NAMES = [
+    feature
+    for feature in BASE_FEATURE_NAMES
+    if feature not in EXCLUDED_BASE_FEATURES
+] + COMPONENT_FEATURE_NAMES + EXTENSION_FEATURE_NAMES
 
 
 def main() -> None:
-    """Generate the enhanced 45-feature URL dataset."""
+    """Generate the enhanced 48-feature URL dataset."""
 
     print("=" * 70)
     print("WebLens Enhanced Feature Generation")
@@ -80,7 +98,7 @@ def main() -> None:
             f"{required_columns - set(df.columns)}"
         )
 
-    # Generate the original 27 lexical features.
+    # Generate the base lexical features.
     base_feature_dicts = df["url"].apply(
         extract_url_features
     )
@@ -94,7 +112,12 @@ def main() -> None:
         columns=BASE_FEATURE_NAMES,
     )
 
-    # Generate the 18 URL component features.
+    # Remove protocol-dependent features excluded from evaluation.
+    base_df = base_df.drop(
+        columns=list(EXCLUDED_BASE_FEATURES)
+    )
+
+    # Generate the 19 URL component features.
     component_feature_dicts = df["url"].apply(
         extract_url_component_features
     )
@@ -104,24 +127,35 @@ def main() -> None:
         columns=COMPONENT_FEATURE_NAMES,
     )
 
-    # Combine both feature groups.
+    # Generate selected extension features.
+    url_lower = df["url"].astype(str).str.lower()
+
+    extension_df = pd.DataFrame({
+        "has_exe_extension": url_lower.str.contains(r"\.exe(?:$|[/?#])", regex=True, na=False).astype(int),
+        "has_html_extension": url_lower.str.contains(r"\.html?(?:$|[/?#])", regex=True, na=False).astype(int),
+        "has_bin_extension": url_lower.str.contains(r"\.bin(?:$|[/?#])", regex=True, na=False).astype(int),
+        "has_asp_extension": url_lower.str.contains(r"\.aspx?(?:$|[/?#])", regex=True, na=False).astype(int),
+    })
+
+    # Combine all feature groups.
     feature_df = pd.concat(
         [
             base_df.reset_index(drop=True),
             component_df.reset_index(drop=True),
+            extension_df.reset_index(drop=True),
         ],
         axis=1,
     )
 
-    if len(FEATURE_NAMES) != 46:
+    if len(FEATURE_NAMES) != 48:
         raise ValueError(
-            f"Expected 46 features, found {len(FEATURE_NAMES)}"
+            f"Expected 48 features, found {len(FEATURE_NAMES)}"
         )
 
-    if feature_df.shape[1] != 46:
+    if feature_df.shape[1] != 48:
         raise ValueError(
             f"Generated {feature_df.shape[1]} features "
-            "instead of 46"
+            "instead of 48"
         )
 
     # Validate feature names and ordering.

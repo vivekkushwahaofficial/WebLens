@@ -4,9 +4,8 @@ import joblib
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 
-from ml.features.url_features import FEATURE_NAMES as BASE_FEATURE_NAMES
 from ml.preprocessing.generate_enhanced_features import (
-    COMPONENT_FEATURE_NAMES,
+    FEATURE_NAMES,
 )
 
 
@@ -27,11 +26,6 @@ FEATURE_SCHEMA_PATH = MODEL_DIR / "feature_schema.joblib"
 METADATA_PATH = MODEL_DIR / "model_metadata.joblib"
 
 
-FEATURE_NAMES = (
-    BASE_FEATURE_NAMES
-    + COMPONENT_FEATURE_NAMES
-)
-
 
 def main() -> None:
     """Train the final WebLens Random Forest model."""
@@ -41,9 +35,9 @@ def main() -> None:
     print("=" * 70)
 
     # Validate the feature schema.
-    if len(FEATURE_NAMES) != 46:
+    if len(FEATURE_NAMES) != 48:
         raise ValueError(
-            f"Expected 46 features, found {len(FEATURE_NAMES)}"
+            f"Expected 48 features, found {len(FEATURE_NAMES)}"
         )
 
     # Load the enhanced feature dataset.

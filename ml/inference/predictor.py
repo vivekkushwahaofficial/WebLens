@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 import joblib
 import pandas as pd
@@ -17,6 +18,8 @@ from ml.features.url_features import (
 )
 from ml.preprocessing.generate_enhanced_features import (
     COMPONENT_FEATURE_NAMES,
+    EXTENSION_FEATURE_NAMES,
+    EXCLUDED_BASE_FEATURES,
 )
 
 
@@ -36,11 +39,11 @@ FEATURE_SCHEMA_PATH = (
     / "feature_schema.joblib"
 )
 
-FEATURE_NAMES = (
-    BASE_FEATURE_NAMES
-    + COMPONENT_FEATURE_NAMES
-)
-
+FEATURE_NAMES = [
+    feature
+    for feature in BASE_FEATURE_NAMES
+    if feature not in EXCLUDED_BASE_FEATURES
+] + COMPONENT_FEATURE_NAMES + EXTENSION_FEATURE_NAMES
 
 class URLPredictor:
     """Load the WebLens model and predict URL classes."""
@@ -75,9 +78,9 @@ class URLPredictor:
                 "training and inference."
             )
 
-        if len(self.feature_schema) != 46:
+        if len(self.feature_schema) != 48:
             raise ValueError(
-                f"Expected 46 features, found "
+                f"Expected 48 features, found "
                 f"{len(self.feature_schema)}"
             )
 
@@ -94,12 +97,64 @@ class URLPredictor:
             extract_url_component_features(url)
         )
 
+        # Remove protocol-dependent features.
+        base_vector = [
+            value
+            for name, value in zip(
+                BASE_FEATURE_NAMES,
+                base_vector,
+            )
+            if name not in EXCLUDED_BASE_FEATURES
+        ]
+
         component_vector = [
             component_features[name]
             for name in COMPONENT_FEATURE_NAMES
         ]
 
-        return base_vector + component_vector
+        url_lower = url.lower()
+
+        extension_features = {
+            "has_exe_extension": int(
+                re.search(
+                    r"\.exe(?:$|[/?#])",
+                    url_lower,
+                )
+                is not None
+            ),
+            "has_html_extension": int(
+                re.search(
+                    r"\.html?(?:$|[/?#])",
+                    url_lower,
+                )
+                is not None
+            ),
+            "has_bin_extension": int(
+                re.search(
+                    r"\.bin(?:$|[/?#])",
+                    url_lower,
+                )
+                is not None
+            ),
+            "has_asp_extension": int(
+                re.search(
+                    r"\.aspx?(?:$|[/?#])",
+                    url_lower,
+                )
+                is not None
+            ),
+        }
+
+        extension_vector = [
+            extension_features[name]
+            for name in EXTENSION_FEATURE_NAMES
+        ]
+
+        return (
+            base_vector
+            + component_vector
+            + extension_vector
+        )
 
     def predict(self, url: str) -> dict:
         """Predict the class of a URL."""
