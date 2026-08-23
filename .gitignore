@@ -5,3 +5,6 @@ __pycache__/
 # WebLens ML datasets
 ml/data/raw/
 ml/data/processed/
+
+# Trained ML model artifacts
+ml/models/*.joblib
