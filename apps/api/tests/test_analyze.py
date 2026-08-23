@@ -17,12 +17,25 @@ def test_analyze_safe_url() -> None:
     data = response.json()
 
     assert data["url"] == "https://example.com/"
-    assert data["risk_score"] == 0
-    assert data["verdict"] == "LOW_RISK"
-    assert data["confidence"] is None
-    assert data["reasons"] == [
-        "No significant suspicious URL patterns detected"
-    ]
+    assert isinstance(data["risk_score"], int)
+    assert 0 <= data["risk_score"] <= 100
+
+    assert data["verdict"] in {
+        "LOW_RISK",
+        "MEDIUM_RISK",
+        "HIGH_RISK",
+    }
+
+    assert isinstance(data["confidence"], float)
+    assert 0.0 <= data["confidence"] <= 1.0
+
+    assert isinstance(data["reasons"], list)
+    assert len(data["reasons"]) >= 1
+
+    assert all(
+        isinstance(reason, str)
+        for reason in data["reasons"]
+    )
 
 
 def test_analyze_ip_address_url() -> None:
@@ -35,8 +48,21 @@ def test_analyze_ip_address_url() -> None:
 
     data = response.json()
 
-    assert data["risk_score"] == 40
-    assert data["verdict"] == "MEDIUM_RISK"
+    assert data["url"] == "http://192.168.1.10/"
+    assert isinstance(data["risk_score"], int)
+    assert 0 <= data["risk_score"] <= 100
+
+    assert data["verdict"] in {
+        "LOW_RISK",
+        "MEDIUM_RISK",
+        "HIGH_RISK",
+    }
+
+    assert isinstance(data["confidence"], float)
+    assert 0.0 <= data["confidence"] <= 1.0
+
+    assert isinstance(data["reasons"], list)
+    assert len(data["reasons"]) >= 1
 
 
 def test_analyze_invalid_url() -> None:

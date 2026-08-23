@@ -1,25 +1,25 @@
 def generate_reasons(
     *,
-    url_length: int,
-    uses_ip_address: bool,
-    has_suspicious_keyword: bool,
+    prediction: str,
+    confidence: float,
 ) -> list[str]:
-    """Generate human-readable reasons for the initial assessment."""
+    """Generate human-readable reasons from the ML prediction."""
 
-    reasons: list[str] = []
+    if prediction == "phishing":
+        return [
+            "The ML model classified this URL as phishing."
+        ]
 
-    if url_length > 100:
-        reasons.append("Unusually long URL")
+    if prediction == "malware":
+        return [
+            "The ML model classified this URL as malware."
+        ]
 
-    if uses_ip_address:
-        reasons.append("URL uses an IP address instead of a domain name")
+    if prediction == "defacement":
+        return [
+            "The ML model classified this URL as defacement."
+        ]
 
-    if has_suspicious_keyword:
-        reasons.append("URL contains potentially suspicious keywords")
-
-    if not reasons:
-        reasons.append(
-            "No significant suspicious URL patterns detected"
-        )
-
-    return reasons
+    return [
+        "The ML model classified this URL as benign."
+    ]
