@@ -7,7 +7,9 @@
     "tabs"
   ],
   "host_permissions": [
-    "http://127.0.0.1:8000/*"
+    "http://127.0.0.1:8000/*",
+    "http://*/*",
+    "https://*/*"
   ],
   "background": {
     "service_worker": "dist/background/service-worker.js",
@@ -16,5 +18,17 @@
   "action": {
     "default_title": "WebLens",
     "default_popup": "src/popup/popup.html"
-  }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "dist/content/link-interceptor.js"
+      ],
+      "run_at": "document_start"
+    }
+  ]
 }
