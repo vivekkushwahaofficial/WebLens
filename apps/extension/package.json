@@ -1,0 +1,14 @@
+{
+  "name": "@weblens/extension",
+  "version": "0.1.0",
+  "private": true,
+  "description": "WebLens Chrome extension for malicious URL early warning",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.1.43",
+    "typescript": "^5.0.0"
+  }
+}
