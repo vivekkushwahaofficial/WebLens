@@ -1,4 +1,5 @@
 from pathlib import Path
+import argparse
 
 import pandas as pd
 
@@ -18,21 +19,25 @@ from ml.features.url_features import (
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
-INPUT_DATASET_PATH = (
+PROCESSED_DIR = (
     PROJECT_ROOT
     / "ml"
     / "data"
     / "processed"
-    / "cleaned_urls.csv"
 )
 
-OUTPUT_DATASET_PATH = (
-    PROJECT_ROOT
-    / "ml"
-    / "data"
-    / "processed"
-    / "url_enhanced_features.csv"
-)
+DATASET_PATHS = {
+    "cleaned": PROCESSED_DIR / "cleaned_urls.csv",
+    "remediated": PROCESSED_DIR / "remediated_urls.csv",
+}
+
+OUTPUT_PATHS = {
+    "cleaned": PROCESSED_DIR / "url_enhanced_features.csv",
+    "remediated": (
+        PROCESSED_DIR
+        / "url_enhanced_features_remediated.csv"
+    ),
+}
 
 
 COMPONENT_FEATURE_NAMES = [
@@ -79,14 +84,45 @@ FEATURE_NAMES = [
 ] + COMPONENT_FEATURE_NAMES + EXTENSION_FEATURE_NAMES
 
 
+def parse_arguments() -> argparse.Namespace:
+    """Parse command-line arguments."""
+
+    parser = argparse.ArgumentParser(
+        description=(
+            "Generate WebLens enhanced URL features."
+        )
+    )
+
+    parser.add_argument(
+        "--input",
+        choices=DATASET_PATHS.keys(),
+        default="cleaned",
+        help=(
+            "Dataset to process: "
+            "'cleaned' or 'remediated'. "
+            "Default: cleaned."
+        ),
+    )
+
+    return parser.parse_args()
+
+
 def main() -> None:
     """Generate the enhanced 48-feature URL dataset."""
+
+    args = parse_arguments()
+
+    input_path = DATASET_PATHS[args.input]
+    output_path = OUTPUT_PATHS[args.input]
 
     print("=" * 70)
     print("WebLens Enhanced Feature Generation")
     print("=" * 70)
 
-    df = pd.read_csv(INPUT_DATASET_PATH)
+    print(f"\nInput mode: {args.input}")
+    print(f"Input path: {input_path}")
+
+    df = pd.read_csv(input_path)
 
     print(f"\nInput rows: {len(df):,}")
 
@@ -112,12 +148,12 @@ def main() -> None:
         columns=BASE_FEATURE_NAMES,
     )
 
-    # Remove protocol-dependent features excluded from evaluation.
+    # Remove protocol-dependent features.
     base_df = base_df.drop(
         columns=list(EXCLUDED_BASE_FEATURES)
     )
 
-    # Generate the 19 URL component features.
+    # Generate URL component features.
     component_feature_dicts = df["url"].apply(
         extract_url_component_features
     )
@@ -127,15 +163,33 @@ def main() -> None:
         columns=COMPONENT_FEATURE_NAMES,
     )
 
-    # Generate selected extension features.
+    # Generate extension features.
     url_lower = df["url"].astype(str).str.lower()
 
-    extension_df = pd.DataFrame({
-        "has_exe_extension": url_lower.str.contains(r"\.exe(?:$|[/?#])", regex=True, na=False).astype(int),
-        "has_html_extension": url_lower.str.contains(r"\.html?(?:$|[/?#])", regex=True, na=False).astype(int),
-        "has_bin_extension": url_lower.str.contains(r"\.bin(?:$|[/?#])", regex=True, na=False).astype(int),
-        "has_asp_extension": url_lower.str.contains(r"\.aspx?(?:$|[/?#])", regex=True, na=False).astype(int),
-    })
+    extension_df = pd.DataFrame(
+        {
+            "has_exe_extension": url_lower.str.contains(
+                r"\.exe(?:$|[/?#])",
+                regex=True,
+                na=False,
+            ).astype(int),
+            "has_html_extension": url_lower.str.contains(
+                r"\.html?(?:$|[/?#])",
+                regex=True,
+                na=False,
+            ).astype(int),
+            "has_bin_extension": url_lower.str.contains(
+                r"\.bin(?:$|[/?#])",
+                regex=True,
+                na=False,
+            ).astype(int),
+            "has_asp_extension": url_lower.str.contains(
+                r"\.aspx?(?:$|[/?#])",
+                regex=True,
+                na=False,
+            ).astype(int),
+        }
+    )
 
     # Combine all feature groups.
     feature_df = pd.concat(
@@ -158,14 +212,12 @@ def main() -> None:
             "instead of 48"
         )
 
-    # Validate feature names and ordering.
     if feature_df.columns.tolist() != FEATURE_NAMES:
         raise ValueError(
             "Feature column order does not match "
             "the canonical enhanced schema"
         )
 
-    # Validate missing values.
     missing_values = (
         feature_df.isnull().sum().sum()
     )
@@ -175,7 +227,6 @@ def main() -> None:
             f"Found {missing_values} missing feature values"
         )
 
-    # Validate numeric values.
     non_numeric_columns = feature_df.select_dtypes(
         exclude="number"
     ).columns.tolist()
@@ -200,13 +251,13 @@ def main() -> None:
             "Row count changed during feature generation"
         )
 
-    OUTPUT_DATASET_PATH.parent.mkdir(
+    output_path.parent.mkdir(
         parents=True,
         exist_ok=True,
     )
 
     result_df.to_csv(
-        OUTPUT_DATASET_PATH,
+        output_path,
         index=False,
     )
 
@@ -215,8 +266,14 @@ def main() -> None:
         f"Component features: "
         f"{len(COMPONENT_FEATURE_NAMES)}"
     )
-    print(f"Total features: {len(FEATURE_NAMES)}")
-    print(f"Output rows: {len(result_df):,}")
+    print(
+        f"Total features: "
+        f"{len(FEATURE_NAMES)}"
+    )
+    print(
+        f"Output rows: "
+        f"{len(result_df):,}"
+    )
 
     print("\nMissing values:")
     print(missing_values)
@@ -232,7 +289,7 @@ def main() -> None:
         .to_string()
     )
 
-    print(f"\nOutput: {OUTPUT_DATASET_PATH}")
+    print(f"\nOutput: {output_path}")
 
     print("\n" + "=" * 70)
 
