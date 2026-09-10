@@ -1,0 +1,91 @@
+name: WebLens CI
+
+on:
+  # Run CI when someone creates or updates a Pull Request
+  pull_request:
+    branches:
+      - main
+
+  # Also run CI whenever code is pushed directly to main
+  push:
+    branches:
+      - main
+
+permissions:
+  # CI only needs to read the repository
+  contents: read
+
+jobs:
+
+  # ==========================================
+  # Python Backend + ML Tests
+  # ==========================================
+  python-tests:
+    name: Python Tests
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # Download repository code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Install Python
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Upgrade pip
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
+      # Install Python dependencies
+      - name: Install dependencies
+        run: |
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+
+          if [ -f apps/api/requirements.txt ]; then
+            pip install -r apps/api/requirements.txt
+          fi
+
+      # Run all tests
+      - name: Run tests
+        run: pytest -v
+
+
+  # ==========================================
+  # Extension Build
+  # ==========================================
+  extension:
+    name: Extension Build
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # Download repository code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Install Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # Install extension dependencies
+      - name: Install dependencies
+        working-directory: apps/extension
+        run: npm ci
+
+      # Run TypeScript type checking
+      - name: Type check
+        working-directory: apps/extension
+        run: npm run typecheck
+
+      # Build the browser extension
+      - name: Build extension
+        working-directory: apps/extension
+        run: npm run build
